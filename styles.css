@@ -1,0 +1,238 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #040c2c 0%, #263d7f 50%, #695aa7 100%);
+    min-height: 100vh;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.conference-banner {
+    background-image: url('banner.png');
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: -20px calc(-50vw + 50%) -20px calc(-50vw + 50%);
+    width: 100vw;
+    position: relative;
+    border-radius: 0 0 20px 20px;
+    overflow: hidden;
+    /* Fallback background */
+    background-color: #040c2c;
+}
+
+
+.controls {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    margin: 40px 0 30px 0;
+    text-align: center;
+}
+
+
+.lottery-btn {
+    background: linear-gradient(45deg, #263d7f, #695aa7);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    font-size: 1.3rem;
+    font-weight: 600;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(105, 90, 167, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.lottery-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(105, 90, 167, 0.6);
+}
+
+.lottery-btn:active {
+    transform: translateY(0);
+}
+
+.lottery-btn.running {
+    background: linear-gradient(45deg, #695aa7, #263d7f);
+    animation: pulse 0.5s infinite alternate;
+}
+
+@keyframes pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.05); }
+}
+
+.current-display {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #333;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.current-display .placeholder {
+    color: #999;
+    font-style: italic;
+}
+
+.current-display .spinning {
+    color: #695aa7;
+    animation: spin 0.1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.congratulations-banner {
+    text-align: center;
+    animation: congratulationsPop 0.8s ease-out;
+}
+
+.congratulations-banner * {
+    animation: none !important;
+}
+
+.congratulations-text {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #695aa7;
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+    margin-bottom: 10px;
+    animation: none;
+}
+
+
+@keyframes congratulationsPop {
+    0% { 
+        transform: scale(0) rotate(-180deg); 
+        opacity: 0; 
+    }
+    50% { 
+        transform: scale(1.1) rotate(-90deg); 
+        opacity: 0.8; 
+    }
+    100% { 
+        transform: scale(1) rotate(0deg); 
+        opacity: 1; 
+    }
+}
+
+@keyframes celebrationPulse {
+    from { 
+        transform: scale(1);
+        text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+    }
+    to { 
+        transform: scale(1.05);
+        text-shadow: 4px 4px 8px rgba(105, 90, 167, 0.5);
+    }
+}
+
+.winners-section {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    margin-bottom: 30px;
+}
+
+.winners-section h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 2rem;
+}
+
+.winners-display {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(3, 1fr);
+    gap: 20px;
+    justify-content: center;
+    min-height: 300px;
+    align-items: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.winners-display .placeholder {
+    color: #999;
+    font-style: italic;
+    font-size: 1.2rem;
+}
+
+.winner-item {
+    background: linear-gradient(45deg, #263d7f, #695aa7);
+    color: white;
+    padding: 25px 35px;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 1.8rem;
+    box-shadow: 0 8px 25px rgba(38, 61, 127, 0.4);
+    animation: winnerPop 0.5s ease-out;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px;
+}
+
+@keyframes winnerPop {
+    0% { transform: scale(0) rotate(180deg); opacity: 0; }
+    50% { transform: scale(1.2) rotate(90deg); opacity: 0.8; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .conference-banner {
+        min-height: 250px;
+        margin: -10px -10px 30px -10px;
+    }
+    
+    
+    .controls, .winners-section {
+        padding: 20px;
+    }
+    
+    .current-display {
+        font-size: 1.5rem;
+    }
+    
+    
+    .congratulations-text {
+        font-size: 2rem;
+    }
+    
+    
+}
