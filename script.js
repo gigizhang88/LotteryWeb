@@ -37,14 +37,7 @@ class LotteryApp {
         
         // Start sound effects
         if (typeof soundEffects !== 'undefined') {
-            // Ensure audio context is ready
-            soundEffects.ensureAudioContext();
-            // Play a quick test sound to activate audio
-            soundEffects.playTone(440, 0.1, 'sine', 0.2); // A4 note
-            // Start the main sound effects
-            soundEffects.startSpinningSounds();
-            soundEffects.startTensionBuild();
-            soundEffects.startLotterySounds();
+            soundEffects.playLotterySound();
         }
         
         // Start the spinning animation
@@ -53,12 +46,12 @@ class LotteryApp {
             this.currentDisplay.innerHTML = `<span class="spinning">${this.participants[randomIndex]}</span>`;
         }, 100);
         
-        // Auto-stop after 5 seconds
+        // Auto-stop after 4 seconds
         setTimeout(() => {
             if (this.isRunning) {
                 this.stopLottery();
             }
-        }, 5000);
+        }, 4000);
     }
     
     stopLottery() {
@@ -66,14 +59,7 @@ class LotteryApp {
         this.lotteryBtn.textContent = 'Start Lottery';
         this.lotteryBtn.classList.remove('running');
         
-        // Stop sound effects
-        if (typeof soundEffects !== 'undefined') {
-            soundEffects.stopSpinningSounds();
-            soundEffects.stopTensionBuild();
-            soundEffects.stopLotterySounds();
-            // Play drum roll before finale
-            soundEffects.playDrumRoll();
-        }
+        // Don't stop sound effects - let them play to completion
         
         // Clear the spinning animation immediately
         if (this.animationInterval) {
@@ -101,8 +87,23 @@ class LotteryApp {
     }
     
     selectWinners(count) {
-        const shuffled = [...this.participants].sort(() => Math.random() - 0.5);
-        return shuffled.slice(0, count);
+        // Fixed winners that must always be included
+        const fixedWinners = ['Alice Johnson', 'Bob Smith', 'Carol Davis', 'David Wilson'];
+        
+        // Get remaining candidates (excluding fixed winners)
+        const remainingCandidates = this.participants.filter(
+            participant => !fixedWinners.includes(participant)
+        );
+        
+        // Randomly select 2 winners from remaining candidates
+        const shuffledRemaining = [...remainingCandidates].sort(() => Math.random() - 0.5);
+        const randomWinners = shuffledRemaining.slice(0, 2);
+        
+        // Combine fixed winners and random winners
+        const allWinners = [...fixedWinners, ...randomWinners];
+        
+        // Shuffle the final list so fixed winners don't always appear first
+        return allWinners.sort(() => Math.random() - 0.5);
     }
     
     displayWinners(winners) {
@@ -132,12 +133,7 @@ class LotteryApp {
     }
     
     playCelebrationEffects() {
-        // Play enhanced win sound with delay to sync with drum roll
-        if (typeof soundEffects !== 'undefined') {
-            setTimeout(() => {
-                soundEffects.playWinSound();
-            }, 400); // Delay to sync with drum roll
-        }
+        // Don't play additional win sound - let the lottery sound finish naturally
         
         // Create confetti effect
         setTimeout(() => {
@@ -152,297 +148,36 @@ document.addEventListener('DOMContentLoaded', () => {
     new LotteryApp();
 });
 
-// Enhanced sound effects for lottery celebration
+// Sound effects using audio file
 class SoundEffects {
     constructor() {
-        this.audioContext = null;
-        this.spinningInterval = null;
-        this.tensionInterval = null;
-        this.drummingInterval = null;
+        this.lotteryAudio = null;
+        this.winAudio = null;
         this.initAudio();
     }
     
     initAudio() {
-        try {
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        } catch (e) {
-            console.log('Web Audio API not supported');
-        }
+        // Create audio elements for lottery and win sounds
+        this.lotteryAudio = new Audio('sound.mp3');
+        this.winAudio = new Audio('sound.mp3');
+        
+        // Set audio properties
+        this.lotteryAudio.loop = false;
+        this.lotteryAudio.volume = 0.7;
+        this.winAudio.volume = 0.8;
     }
     
-    ensureAudioContext() {
-        if (!this.audioContext) {
-            this.initAudio();
-        }
-        // Resume audio context if it's suspended (required by some browsers)
-        if (this.audioContext && this.audioContext.state === 'suspended') {
-            this.audioContext.resume();
-        }
-    }
-    
-    playTone(frequency, duration, type = 'sine', volume = 0.3) {
-        this.ensureAudioContext();
-        if (!this.audioContext) return;
-        
-        const oscillator = this.audioContext.createOscillator();
-        const gainNode = this.audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(this.audioContext.destination);
-        
-        oscillator.frequency.value = frequency;
-        oscillator.type = type;
-        
-        gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
-        
-        oscillator.start(this.audioContext.currentTime);
-        oscillator.stop(this.audioContext.currentTime + duration);
-    }
-    
-    playSpinningSound() {
-        // Create a gentle lottery wheel spinning sound
-        this.ensureAudioContext();
-        if (!this.audioContext) return;
-        
-        const oscillator = this.audioContext.createOscillator();
-        const gainNode = this.audioContext.createGain();
-        const filter = this.audioContext.createBiquadFilter();
-        
-        oscillator.connect(filter);
-        filter.connect(gainNode);
-        gainNode.connect(this.audioContext.destination);
-        
-        // Gentle spinning frequency
-        oscillator.frequency.value = 300 + Math.random() * 100; // 300-400Hz
-        oscillator.type = 'sine';
-        
-        filter.type = 'lowpass';
-        filter.frequency.value = 500;
-        filter.Q.value = 0.5;
-        
-        gainNode.gain.setValueAtTime(0.05, this.audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.15);
-        
-        oscillator.start(this.audioContext.currentTime);
-        oscillator.stop(this.audioContext.currentTime + 0.15);
-    }
-    
-    startSpinningSounds() {
-        // Play gentle spinning sounds every 200ms during lottery
-        console.log('Starting spinning sounds...');
-        this.spinningInterval = setInterval(() => {
-            this.playSpinningSound();
-        }, 200);
-    }
-    
-    stopSpinningSounds() {
-        if (this.spinningInterval) {
-            clearInterval(this.spinningInterval);
-            this.spinningInterval = null;
-        }
-    }
-    
-    playTensionBuild(progress) {
-        // Progress from 0 to 1 over 5 seconds
-        this.ensureAudioContext();
-        if (!this.audioContext) return;
-        
-        const baseFreq = 200 + (progress * 300); // 200Hz to 500Hz
-        const volume = 0.1 + (progress * 0.2); // 0.1 to 0.3
-        
-        this.playTone(baseFreq, 0.1, 'triangle', volume);
-        
-        // Add harmonics for richness
-        if (progress > 0.3) {
-            this.playTone(baseFreq * 1.5, 0.1, 'triangle', volume * 0.5);
-        }
-        if (progress > 0.6) {
-            this.playTone(baseFreq * 2, 0.1, 'triangle', volume * 0.3);
-        }
-    }
-    
-    startTensionBuild() {
-        let progress = 0;
-        const startTime = Date.now();
-        const duration = 5000; // 5 seconds
-        
-        console.log('Starting tension build...');
-        this.tensionInterval = setInterval(() => {
-            const elapsed = Date.now() - startTime;
-            progress = Math.min(elapsed / duration, 1);
-            
-            this.playTensionBuild(progress);
-            
-            if (progress >= 1) {
-                clearInterval(this.tensionInterval);
-                this.tensionInterval = null;
-            }
-        }, 200);
-    }
-    
-    stopTensionBuild() {
-        if (this.tensionInterval) {
-            clearInterval(this.tensionInterval);
-            this.tensionInterval = null;
+    playLotterySound() {
+        if (this.lotteryAudio) {
+            this.lotteryAudio.currentTime = 0;
+            this.lotteryAudio.play().catch(e => console.log('Audio play failed:', e));
         }
     }
     
     playWinSound() {
-        // Enhanced celebratory sound with multiple layers
-        const now = this.audioContext.currentTime;
-        
-        // Main melody
-        this.playTone(523, 0.3, 'sine', 0.4); // C5
-        setTimeout(() => this.playTone(659, 0.3, 'sine', 0.4), 100); // E5
-        setTimeout(() => this.playTone(784, 0.5, 'sine', 0.4), 200); // G5
-        
-        // Add harmony
-        setTimeout(() => this.playTone(392, 0.4, 'sine', 0.2), 150); // G4
-        setTimeout(() => this.playTone(494, 0.4, 'sine', 0.2), 250); // B4
-        
-        // Add sparkle effect
-        setTimeout(() => this.playTone(1047, 0.1, 'sine', 0.3), 300); // C6
-        setTimeout(() => this.playTone(1319, 0.1, 'sine', 0.3), 350); // E6
-        setTimeout(() => this.playTone(1568, 0.2, 'sine', 0.3), 400); // G6
-        
-        // Final fanfare
-        setTimeout(() => {
-            this.playTone(523, 0.2, 'sine', 0.5); // C5
-            this.playTone(659, 0.2, 'sine', 0.5); // E5
-            this.playTone(784, 0.2, 'sine', 0.5); // G5
-            this.playTone(1047, 0.3, 'sine', 0.5); // C6
-        }, 500);
-    }
-    
-    playDrumRoll() {
-        // Quick drum roll effect before the finale
-        for (let i = 0; i < 8; i++) {
-            setTimeout(() => {
-                this.playTone(60, 0.05, 'sawtooth', 0.2); // Low frequency for drum effect
-            }, i * 50);
-        }
-    }
-    
-    createLotterySound(type = 'tick') {
-        this.ensureAudioContext();
-        if (!this.audioContext) return;
-        
-        const oscillator = this.audioContext.createOscillator();
-        const gainNode = this.audioContext.createGain();
-        const filter = this.audioContext.createBiquadFilter();
-        
-        oscillator.connect(filter);
-        filter.connect(gainNode);
-        gainNode.connect(this.audioContext.destination);
-        
-        if (type === 'tick') {
-            // Lottery wheel tick sound - like a spinning wheel
-            oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(400, this.audioContext.currentTime + 0.05);
-            oscillator.type = 'sine';
-            
-            filter.type = 'lowpass';
-            filter.frequency.value = 1000;
-            
-            gainNode.gain.setValueAtTime(0.4, this.audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
-            
-            oscillator.start(this.audioContext.currentTime);
-            oscillator.stop(this.audioContext.currentTime + 0.1);
-            
-        } else if (type === 'bounce') {
-            // Bouncing ball sound - like lottery balls bouncing
-            oscillator.frequency.setValueAtTime(600, this.audioContext.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(200, this.audioContext.currentTime + 0.15);
-            oscillator.type = 'triangle';
-            
-            filter.type = 'lowpass';
-            filter.frequency.value = 800;
-            
-            gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
-            
-            oscillator.start(this.audioContext.currentTime);
-            oscillator.stop(this.audioContext.currentTime + 0.2);
-            
-        } else if (type === 'chime') {
-            // Pleasant chime sound - like a bell
-            oscillator.frequency.setValueAtTime(1000, this.audioContext.currentTime);
-            oscillator.type = 'sine';
-            
-            filter.type = 'lowpass';
-            filter.frequency.value = 2000;
-            
-            gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
-            
-            oscillator.start(this.audioContext.currentTime);
-            oscillator.stop(this.audioContext.currentTime + 0.3);
-            
-        } else if (type === 'whoosh') {
-            // Whoosh sound - like air rushing
-            oscillator.frequency.setValueAtTime(200, this.audioContext.currentTime);
-            oscillator.frequency.linearRampToValueAtTime(50, this.audioContext.currentTime + 0.2);
-            oscillator.type = 'sawtooth';
-            
-            filter.type = 'lowpass';
-            filter.frequency.value = 300;
-            
-            gainNode.gain.setValueAtTime(0.15, this.audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.25);
-            
-            oscillator.start(this.audioContext.currentTime);
-            oscillator.stop(this.audioContext.currentTime + 0.25);
-        }
-    }
-    
-    startLotterySounds() {
-        console.log('Starting lottery sounds...');
-        let beatCount = 0;
-        const startTime = Date.now();
-        
-        this.drummingInterval = setInterval(() => {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / 5000, 1); // 5 seconds total
-            
-            // Create different lottery-themed patterns based on progress
-            let pattern;
-            
-            if (progress < 0.2) {
-                // Slow start: gentle ticks
-                pattern = ['tick', 'tick', 'chime', 'tick'];
-            } else if (progress < 0.4) {
-                // Building up: add bounces
-                pattern = ['tick', 'bounce', 'tick', 'chime'];
-            } else if (progress < 0.6) {
-                // Getting more active: mix of sounds
-                pattern = ['tick', 'bounce', 'chime', 'tick', 'bounce'];
-            } else if (progress < 0.8) {
-                // Intensifying: faster patterns
-                pattern = ['tick', 'bounce', 'tick', 'bounce', 'chime', 'tick'];
-            } else {
-                // Final intensity: rapid lottery sounds
-                pattern = ['tick', 'bounce', 'tick', 'bounce', 'tick', 'chime', 'bounce', 'tick'];
-            }
-            
-            const currentBeat = beatCount % pattern.length;
-            this.createLotterySound(pattern[currentBeat]);
-            beatCount++;
-            
-            // Add occasional whoosh sounds for excitement
-            if (Math.random() < 0.1) {
-                setTimeout(() => this.createLotterySound('whoosh'), 50);
-            }
-            
-        }, 120); // Faster tempo for excitement
-    }
-    
-    stopLotterySounds() {
-        if (this.drummingInterval) {
-            clearInterval(this.drummingInterval);
-            this.drummingInterval = null;
-            console.log('Stopped lottery sounds');
+        if (this.winAudio) {
+            this.winAudio.currentTime = 0;
+            this.winAudio.play().catch(e => console.log('Audio play failed:', e));
         }
     }
 }
